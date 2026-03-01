@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { addUser, removeUser, setUsers } from '../store/usersSlice'
 import { useEffect } from 'react'
 import { getJson, postJson } from '../utils/api'
+import { API_BASE } from '../store/store'
 import LabelField from '../components/LabelField'
 import UserList from '../components/UserList'
 import { validate } from '../utils/validatUser'
@@ -38,7 +39,7 @@ export default function Users() {
     const newUser = { firstName, lastName, email, password, isActive, createdDate: now, modifiedDate: now }
 
     try {
-      const responseObj = await postJson('https://localhost:7026/api/TaskManager/AddUser', newUser)
+      const responseObj = await postJson(`${API_BASE}AddUser`, newUser)
       if (!responseObj.ok) {
         setErrors({ submit: responseObj.data?.error || responseObj.text || 'Unknown error' })
         return
@@ -73,7 +74,7 @@ export default function Users() {
     let mounted = true
     const fetchUsers = async () => {
       try {
-        const responseObj = await getJson('https://localhost:7026/api/TaskManager/GetUsers')
+        const responseObj = await getJson(`${API_BASE}GetUsers`)
         if (!responseObj.ok) return
         const data = responseObj.data
         if (mounted && Array.isArray(data)) {
@@ -97,7 +98,7 @@ export default function Users() {
 
   const handleDeactivate = async (userId) => {
     try {
-      const responseObj = await postJson(`https://localhost:7026/api/TaskManager/DeactivateUser?userId=${userId}`)
+      const responseObj = await postJson(`${API_BASE}DeactivateUser?userId=${userId}`)
       if (!responseObj.ok) {
         setErrors({ submit: responseObj.data?.error || responseObj.text || 'Unknown error' })
         return

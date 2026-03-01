@@ -5,6 +5,7 @@ import { setUsers } from '../store/usersSlice'
 import { getJson, postJson } from '../utils/api'
 import GenericSelect from '../components/GenericSelect'
 import { isGuid, validate } from '../utils/validateTask'
+import { API_BASE } from '../store/store'
 import LabelField from '../components/LabelField'
 import TaskItemsList from '../components/TaskItemsList'
 import ViewTasksModal from '../components/ViewTasksModal'
@@ -67,10 +68,10 @@ export default function Tasks() {
     let mounted = true
     const fetchUsers = async () => {
       try {
-        const responseObj = await getJson('https://localhost:7026/api/TaskManager/GetUsers')
+        const responseObj = await getJson(`${API_BASE}GetUsers`)
         if (!responseObj.ok) return
         const data = responseObj.data
-        if (mounted && Array.isArray(data)) {
+        if (mounted && Array.isArray(data)) { 
           dispatch(setUsers(data))
         }
       } catch (err) {
@@ -100,10 +101,10 @@ export default function Tasks() {
     const newTask = { title, description, taskPriority: Number(taskPriority), userId };
 
     try {
-      const responseObj = await postJson('https://localhost:7026/api/TaskManager/AddTask', newTask)
+      const responseObj = await postJson(`${API_BASE}AddTask`, newTask)
       if (!responseObj.ok) {
         setErrors({ submit: `Server error: ${responseObj.text || 'Unknown error'}` })
-        return
+          return 
       }
       const processingResult = responseObj.data
       // processingResult: { succeeded: bool, error: string, resultId: guid | null }
@@ -133,10 +134,10 @@ export default function Tasks() {
     }
 
     try {
-      const responseObj = await postJson('https://localhost:7026/api/TaskManager/GetTasksByFilter', filter)
+      const responseObj = await postJson(`${API_BASE}GetTasksByFilter`, filter)
       if (!responseObj.ok) {
         setErrors({ submit: `Server error: ${responseObj.text || 'Unknown error'}` })
-        return
+          return 
       }
       const data = responseObj.data
       if (Array.isArray(data)) {
@@ -184,10 +185,10 @@ export default function Tasks() {
     }
 
     try {
-      const responseObj = await postJson('https://localhost:7026/api/TaskManager/UpdateTask', payload)
+      const responseObj = await postJson(`${API_BASE}UpdateTask`, payload)
       if (!responseObj.ok) {
         setErrors({ submit: `Server error: ${responseObj.text || 'Unknown error'}` })
-        return
+          return 
       }
       const processingResult = responseObj.data
       if (processingResult.succeeded) {
