@@ -234,7 +234,8 @@ export default function Tasks() {
         {tasks.map((t) => (
           <li key={t.id}>
             {t.title} (Priority: {t.taskPriority || '1'}) - assigned to {t.userId}{' '}
-            <button onClick={() => dispatch(removeTask(t.id))}>Remove</button>
+            <button onClick={() => dispatch(removeTask(t.id))}>View</button>
+            <button onClick={() => dispatch(removeTask(t.id))}>Update</button>
           </li>
         ))}
       </ul>
