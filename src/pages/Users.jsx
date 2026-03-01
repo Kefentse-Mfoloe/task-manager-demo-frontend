@@ -5,18 +5,7 @@ import { useEffect } from 'react'
 import { getJson, postJson } from '../utils/api'
 import LabelField from '../components/LabelField'
 import UserList from '../components/UserList'
-
-function validateEmail(editedEmail) {
-  return editedEmail && editedEmail.includes('@');
-}
-
-function validatePassword(editedPassword) {
-  if (!editedPassword || editedPassword.length < 8) return false;
-  const hasUpper = /[A-Z]/.test(editedPassword);
-  const hasLower = /[a-z]/.test(editedPassword);
-  const hasDigit = /[0-9]/.test(editedPassword);
-  return hasUpper && hasLower && hasDigit;
-}
+import { validate } from '../utils/validatUser'
 
 function formatDate(value) {
   try {
@@ -37,19 +26,11 @@ export default function Users() {
   const [isActive, setIsActive] = useState(true);
   const [errors, setErrors] = useState({});
 
-  const validate = () => {
-    const errorObject = {}
-    if (!firstName.trim()) errorObject.firstName = 'First name is required';
-    if (!lastName.trim()) errorObject.lastName = 'Last name is required';
-    if (!validateEmail(email)) errorObject.email = 'Valid email is required';
-    if (!validatePassword(password))
-      errorObject.password = 'Password must be 8+ chars with upper, lower and digit';
-    return errorObject;
-  }
+  // validation moved to src/utils/userValidate.js
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
-    const validationErrors = validate();
+    const validationErrors = validate({ firstName, lastName, email, password });
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
@@ -57,13 +38,13 @@ export default function Users() {
     const newUser = { firstName, lastName, email, password, isActive, createdDate: now, modifiedDate: now }
 
     try {
-      const r = await postJson('https://localhost:7026/api/TaskManager/AddUser', newUser)
-      if (!r.ok) {
-        setErrors({ submit: r.data?.error || r.text || 'Unknown error' })
+      const responseObj = await postJson('https://localhost:7026/api/TaskManager/AddUser', newUser)
+      if (!responseObj.ok) {
+        setErrors({ submit: responseObj.data?.error || responseObj.text || 'Unknown error' })
         return
       }
 
-      const processingResult = r.data
+      const processingResult = responseObj.data
       // processingResult: { succeeded: bool, error: string, resultId: guid | null }
       if (processingResult.succeeded) {
         // update newUser with returned id
@@ -92,9 +73,9 @@ export default function Users() {
     let mounted = true
     const fetchUsers = async () => {
       try {
-        const r = await getJson('https://localhost:7026/api/TaskManager/GetUsers')
-        if (!r.ok) return
-        const data = r.data
+        const responseObj = await getJson('https://localhost:7026/api/TaskManager/GetUsers')
+        if (!responseObj.ok) return
+        const data = responseObj.data
         if (mounted && Array.isArray(data)) {
           // ensure timestamps exist on each user
           const mapped = data.map((u) => ({
@@ -116,12 +97,12 @@ export default function Users() {
 
   const handleDeactivate = async (userId) => {
     try {
-      const r = await postJson(`https://localhost:7026/api/TaskManager/DeactivateUser?userId=${userId}`)
-      if (!r.ok) {
-        setErrors({ submit: r.data?.error || r.text || 'Unknown error' })
+      const responseObj = await postJson(`https://localhost:7026/api/TaskManager/DeactivateUser?userId=${userId}`)
+      if (!responseObj.ok) {
+        setErrors({ submit: responseObj.data?.error || responseObj.text || 'Unknown error' })
         return
       }
-      const processingResult = r.data
+      const processingResult = responseObj.data
       if (processingResult.succeeded) {
         dispatch(removeUser(userId))
       } else {
