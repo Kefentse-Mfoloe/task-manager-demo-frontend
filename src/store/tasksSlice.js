@@ -27,7 +27,34 @@ const tasksSlice = createSlice({
     setTasks(state, action) {
       state.list = Array.isArray(action.payload) ? action.payload : []
     },
+    updateTask(state, action) {
+      const payload = action.payload || {}
+      const idx = state.list.findIndex((t) => t.id === payload.id)
+      if (idx === -1) return
+      const existing = state.list[idx]
+      const now = new Date().toISOString()
+
+      const taskPriorityId = payload.taskPriority ?? existing.taskPriority ?? existing.taskPriorityId ?? null
+      const taskStatusId = payload.taskStatusId ?? (existing.taskStatusHistory && existing.taskStatusHistory[0] && existing.taskStatusHistory[0].taskStatusId) ?? 0
+
+      const newHistoryItem = {
+        taskStatusId,
+        comment: payload.comment || '',
+        taskPriorityId: taskPriorityId ?? 1,
+        createdDate: now,
+      }
+
+      const updated = {
+        ...existing,
+        ...payload,
+        taskPriority: taskPriorityId,
+        modifiedDate: now,
+        taskStatusHistory: [newHistoryItem].concat(existing.taskStatusHistory || []),
+      }
+
+      state.list[idx] = updated
+    },
   },
 })
-export const { addTask, removeTask, setTasks } = tasksSlice.actions
+export const { addTask, removeTask, setTasks, updateTask } = tasksSlice.actions
 export default tasksSlice.reducer
