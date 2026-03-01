@@ -51,8 +51,8 @@ export default function Users() {
       })
 
       if (!res.ok) {
-        const text = await res.text();
-        setErrors({ submit: `Server error: ${res.status} ${text}` });
+        const processingResult = await res.json();
+        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
         return;
       }
 
@@ -144,6 +144,7 @@ export default function Users() {
             />
           </label>
         </div>
+        {errors.submit && <div style={{ color: 'red' }}>{errors.submit}</div>}
 
         <div>
           <button type="submit">Add User</button>
