@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { addUser, removeUser } from '../store/usersSlice'
+import { addUser, removeUser, setUsers } from '../store/usersSlice'
+import { useEffect } from 'react'
 
 function validateEmail(editedEmail) {
   return editedEmail && editedEmail.includes('@');
@@ -12,6 +13,14 @@ function validatePassword(editedPassword) {
   const hasLower = /[a-z]/.test(editedPassword);
   const hasDigit = /[0-9]/.test(editedPassword);
   return hasUpper && hasLower && hasDigit;
+}
+
+function formatDate(value) {
+  try {
+    return value ? new Date(value).toLocaleString() : ''
+  } catch (e) {
+    return value
+  }
 }
 
 export default function Users() {
@@ -41,7 +50,8 @@ export default function Users() {
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
-    const newUser = { firstName, lastName, email, password, isActive };
+    const now = new Date().toISOString()
+    const newUser = { firstName, lastName, email, password, isActive, createdDate: now, modifiedDate: now }
 
     try {
       const res = await fetch('https://localhost:7026/api/TaskManager/AddUser', {
@@ -61,6 +71,8 @@ export default function Users() {
       if (processingResult.succeeded) {
         // update newUser with returned id
         newUser.id = processingResult.resultId;
+        newUser.createdDate = newUser.createdDate || new Date().toISOString()
+        newUser.modifiedDate = newUser.modifiedDate || new Date().toISOString() || newUser.createdDate
         //newUser.Id = processingResult.resultId || newUser.id
         dispatch(addUser(newUser));
 
@@ -76,6 +88,53 @@ export default function Users() {
       }
     } catch (err) {
       setErrors({ submit: err.message || 'Network error' });
+    }
+  }
+
+  useEffect(() => {
+    let mounted = true
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('https://localhost:7026/api/TaskManager/GetUsers')
+        if (!res.ok) return
+        const data = await res.json()
+        if (mounted && Array.isArray(data)) {
+          // ensure timestamps exist on each user
+          const mapped = data.map((u) => ({
+            ...u,
+            createdDate: u.createdDate || u.CreatedDate || new Date().toISOString(),
+            modifiedDate: u.modifiedDate || u.ModifiedDate || u.createdDate || new Date().toISOString(),
+          }))
+          dispatch(setUsers(mapped))
+        }
+      } catch (err) {
+        // ignore for now
+      }
+    }
+    fetchUsers()
+    return () => {
+      mounted = false
+    }
+  }, [dispatch])
+
+  const handleDeactivate = async (userId) => {
+    try {
+      const res = await fetch(`https://localhost:7026/api/TaskManager/DeactivateUser?userId=${userId}`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        setErrors({ submit: `Server error: ${res.status} ${text}` })
+        return
+      }
+      const processingResult = await res.json()
+      if (processingResult.succeeded) {
+        dispatch(removeUser(userId))
+      } else {
+        setErrors({ submit: processingResult.error || 'Deactivate failed' })
+      }
+    } catch (err) {
+      setErrors({ submit: err.message || 'Network error' })
     }
   }
 
@@ -151,11 +210,19 @@ export default function Users() {
         </div>
       </form>
 
+      <h3>Available Users</h3>
       <ul>
         {users.map((user) => (
-          <li key={user.id}>
-            {user.firstName} {user.lastName} ({user.email}) {user.isActive ? '• active' : '• inactive'}{' '}
-            <button onClick={() => dispatch(removeUser(user.id))}>Remove</button>
+          <li key={user.id} style={{ marginBottom: 8 }}>
+            <div>
+              <strong>{user.firstName} {user.lastName}</strong> ({user.email}) {user.isActive ? '• active' : '• inactive'}
+            </div>
+            <div style={{ fontSize: '0.9em', color: '#555' }}>
+              Created: {formatDate(user.createdDate || user.CreatedDate)} — Modified: {formatDate(user.modifiedDate || user.ModifiedDate)}
+            </div>
+            <div>
+              <button onClick={() => handleDeactivate(user.id)}>Deactivate</button>
+            </div>
           </li>
         ))}
       </ul>
