@@ -10,8 +10,10 @@ const usersSlice = createSlice({
     removeUser(state, action) {
       state.list = state.list.filter((u) => u.id !== action.payload)
     },
+    setUsers(state, action) {
+      state.list = action.payload || []
+    },
   },
 })
-
-export const { addUser, removeUser } = usersSlice.actions
+export const { addUser, removeUser, setUsers } = usersSlice.actions
 export default usersSlice.reducer
