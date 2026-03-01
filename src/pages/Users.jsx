@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import { addUser, removeUser, setUsers } from '../store/usersSlice'
 import { useEffect } from 'react'
 import { getJson, postJson } from '../utils/api'
+import LabelField from '../components/LabelField'
+import UserList from '../components/UserList'
 
 function validateEmail(editedEmail) {
   return editedEmail && editedEmail.includes('@');
@@ -135,66 +137,47 @@ export default function Users() {
       <h2>Users</h2>
 
       <form onSubmit={handleSubmit} style={{ marginBottom: 16 }} noValidate>
-        <div>
-          <label>
-            First name:
-            <input
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              aria-invalid={!!errors.firstName}
-            />
-          </label>
-          {errors.firstName && <div style={{ color: 'red' }}>{errors.firstName}</div>}
-        </div>
+        <LabelField label="First name:" error={errors.firstName}>
+          <input
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            aria-invalid={!!errors.firstName}
+          />
+        </LabelField>
 
-        <div>
-          <label>
-            Last name:
-            <input
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              aria-invalid={!!errors.lastName}
-            />
-          </label>
-          {errors.lastName && <div style={{ color: 'red' }}>{errors.lastName}</div>}
-        </div>
+        <LabelField label="Last name:" error={errors.lastName}>
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            aria-invalid={!!errors.lastName}
+          />
+        </LabelField>
 
-        <div>
-          <label>
-            Email:
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={!!errors.email}
-            />
-          </label>
-          {errors.email && <div style={{ color: 'red' }}>{errors.email}</div>}
-        </div>
+        <LabelField label="Email:" error={errors.email}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={!!errors.email}
+          />
+        </LabelField>
 
-        <div>
-          <label>
-            Password:
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              aria-invalid={!!errors.password}
-            />
-          </label>
-          {errors.password && <div style={{ color: 'red' }}>{errors.password}</div>}
-        </div>
+        <LabelField label="Password:" error={errors.password}>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={!!errors.password}
+          />
+        </LabelField>
 
-        <div>
-          <label>
-            Is Active:
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-          </label>
-        </div>
+        <LabelField label="Is Active:">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+          />
+        </LabelField>
         {errors.submit && <div style={{ color: 'red' }}>{errors.submit}</div>}
 
         <div>
@@ -203,21 +186,7 @@ export default function Users() {
       </form>
 
       <h3>Available Users</h3>
-      <ul>
-        {users.map((user) => (
-          <li key={user.id} style={{ marginBottom: 8 }}>
-            <div>
-              <strong>{user.firstName} {user.lastName}</strong> ({user.email}) {user.isActive ? '• active' : '• inactive'}
-            </div>
-            <div style={{ fontSize: '0.9em', color: '#555' }}>
-              Created: {formatDate(user.createdDate || user.CreatedDate)} — Modified: {formatDate(user.modifiedDate || user.ModifiedDate)}
-            </div>
-            <div>
-              <button onClick={() => handleDeactivate(user.id)}>Deactivate</button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <UserList users={users} onDeactivate={handleDeactivate} formatDate={formatDate} />
     </div>
   )
 }
