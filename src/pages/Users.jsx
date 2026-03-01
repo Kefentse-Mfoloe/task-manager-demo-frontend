@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { addUser, removeUser, setUsers } from '../store/usersSlice'
 import { useEffect } from 'react'
+import { getJson, postJson } from '../utils/api'
 
 function validateEmail(editedEmail) {
   return editedEmail && editedEmail.includes('@');
@@ -54,19 +55,13 @@ export default function Users() {
     const newUser = { firstName, lastName, email, password, isActive, createdDate: now, modifiedDate: now }
 
     try {
-      const res = await fetch('https://localhost:7026/api/TaskManager/AddUser', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser),
-      })
-
-      if (!res.ok) {
-        const processingResult = await res.json();
-        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
-        return;
+      const r = await postJson('https://localhost:7026/api/TaskManager/AddUser', newUser)
+      if (!r.ok) {
+        setErrors({ submit: r.data?.error || r.text || 'Unknown error' })
+        return
       }
 
-      const processingResult = await res.json()
+      const processingResult = r.data
       // processingResult: { succeeded: bool, error: string, resultId: guid | null }
       if (processingResult.succeeded) {
         // update newUser with returned id
@@ -95,9 +90,9 @@ export default function Users() {
     let mounted = true
     const fetchUsers = async () => {
       try {
-        const res = await fetch('https://localhost:7026/api/TaskManager/GetUsers')
-        if (!res.ok) return
-        const data = await res.json()
+        const r = await getJson('https://localhost:7026/api/TaskManager/GetUsers')
+        if (!r.ok) return
+        const data = r.data
         if (mounted && Array.isArray(data)) {
           // ensure timestamps exist on each user
           const mapped = data.map((u) => ({
@@ -119,15 +114,12 @@ export default function Users() {
 
   const handleDeactivate = async (userId) => {
     try {
-      const res = await fetch(`https://localhost:7026/api/TaskManager/DeactivateUser?userId=${userId}`, {
-        method: 'POST',
-      })
-      if (!res.ok) {
-        const processingResult = await res.json();
-        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
+      const r = await postJson(`https://localhost:7026/api/TaskManager/DeactivateUser?userId=${userId}`)
+      if (!r.ok) {
+        setErrors({ submit: r.data?.error || r.text || 'Unknown error' })
         return
       }
-      const processingResult = await res.json()
+      const processingResult = r.data
       if (processingResult.succeeded) {
         dispatch(removeUser(userId))
       } else {

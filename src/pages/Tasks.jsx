@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { addTask, removeTask, setTasks, updateTask } from '../store/tasksSlice'
 import { setUsers } from '../store/usersSlice'
+import { getJson, postJson } from '../utils/api'
 
 function isGuid(val) {
   if (!val) return false;
@@ -65,9 +66,9 @@ export default function Tasks() {
     let mounted = true
     const fetchUsers = async () => {
       try {
-        const res = await fetch('https://localhost:7026/api/TaskManager/GetUsers')
-        if (!res.ok) return
-        const data = await res.json()
+        const r = await getJson('https://localhost:7026/api/TaskManager/GetUsers')
+        if (!r.ok) return
+        const data = r.data
         if (mounted && Array.isArray(data)) {
           dispatch(setUsers(data))
         }
@@ -103,35 +104,28 @@ export default function Tasks() {
     const newTask = { title, description, taskPriority: Number(taskPriority), userId };
 
     try {
-      const res = await fetch('https://localhost:7026/api/TaskManager/AddTask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask),
-      })
-
-      if (!res.ok) {
-        const processingResult = await res.json();
-        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
-        return;
+      const r = await postJson('https://localhost:7026/api/TaskManager/AddTask', newTask)
+      if (!r.ok) {
+        setErrors({ submit: `Server error: ${r.text || 'Unknown error'}` })
+        return
       }
-
-      const processingResult = await res.json();
+      const processingResult = r.data
       // processingResult: { succeeded: bool, error: string, resultId: guid | null }
       if (processingResult.succeeded) {
-        newTask.id = processingResult.resultId || Date.now().toString();
-        dispatch(addTask(newTask));
+        newTask.id = processingResult.resultId || Date.now().toString()
+        dispatch(addTask(newTask))
 
         // clear form
-        setTitle('');
-        setDescription('');
-        setTaskPriority(1);
-        setUserId('00000000-0000-0000-0000-000000000000');
-        setErrors({});
+        setTitle('')
+        setDescription('')
+        setTaskPriority(1)
+        setUserId('00000000-0000-0000-0000-000000000000')
+        setErrors({})
       } else {
-        setErrors({ submit: processingResult.error || 'Processing failed' });
+        setErrors({ submit: processingResult.error || 'Processing failed' })
       }
     } catch (err) {
-      setErrors({ submit: err.message || 'Network error' });
+      setErrors({ submit: err.message || 'Network error' })
     }
   }
 
@@ -143,19 +137,12 @@ export default function Tasks() {
     }
 
     try {
-      const res = await fetch('https://localhost:7026/api/TaskManager/GetTasksByFilter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(filter),
-      })
-
-      if (!res.ok) {
-        const processingResult = await res.json();
-        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
+      const r = await postJson('https://localhost:7026/api/TaskManager/GetTasksByFilter', filter)
+      if (!r.ok) {
+        setErrors({ submit: `Server error: ${r.text || 'Unknown error'}` })
         return
       }
-
-      const data = await res.json()
+      const data = r.data
       if (Array.isArray(data)) {
         dispatch(setTasks(data))
       } else {
@@ -201,19 +188,12 @@ export default function Tasks() {
     }
 
     try {
-      const res = await fetch('https://localhost:7026/api/TaskManager/UpdateTask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const processingResult = await res.json();
-        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
-        return;
+      const r = await postJson('https://localhost:7026/api/TaskManager/UpdateTask', payload)
+      if (!r.ok) {
+        setErrors({ submit: `Server error: ${r.text || 'Unknown error'}` })
+        return
       }
-
-      const processingResult = await res.json()
+      const processingResult = r.data
       if (processingResult.succeeded) {
         // refresh the tasks list using current filter
         await handleFilterSubmit()
