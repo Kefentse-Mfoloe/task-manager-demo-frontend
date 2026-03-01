@@ -1,11 +1,18 @@
 :root {
+  --color-bg: #f7f5f0; /* off-white */
+  --color-surface: #ffffff;
+  --color-text: #0b0b0b; /* black */
+  --color-muted: #6b6b6b;
+  --color-accent: #d32f2f; /* strong red */
+  --color-accent-weak: #f2dede;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light;
+  color: var(--color-text);
+  background-color: var(--color-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,19 +22,19 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: var(--color-accent);
+  text-decoration: none;
 }
 a:hover {
-  color: #535bf2;
+  color: #b52828;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 h1 {
@@ -37,32 +44,94 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  border: 1px solid rgba(0,0,0,0.12);
+  padding: 0.5rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-text);
+  color: var(--color-bg);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.18s, transform 0.08s;
 }
 button:hover {
-  border-color: #646cff;
+  background-color: var(--color-accent);
+  color: var(--color-surface);
 }
+button:active { transform: translateY(1px); }
 button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+button:focus-visible { outline: 3px solid rgba(211,47,47,0.18); }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0b0b0b;
+    --color-surface: #121212;
+    --color-text: #f7f5f0;
+    --color-muted: #9a9a9a;
+  }
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Basic app styling */
+.app-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: center;
+  background: var(--color-text);
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+nav a {
+  color: var(--color-bg);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+nav a.active {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+form label {
+  display: block;
+  text-align: left;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[readonly],
+select,
+textarea {
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(11,11,11,0.12);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+textarea { min-height: 90px; }
+
+ul { padding-left: 0; list-style: none; }
+li { background: var(--color-surface); padding: 10px; border-radius: 6px; border: 1px solid rgba(11,11,11,0.04); }
+
+/* Simple modal content wrapper helper */
+.modal-content { background: var(--color-surface); color: var(--color-text); border-radius: 8px; padding: 16px; border: 1px solid rgba(11,11,11,0.06); }
+
+@media (max-width: 640px) {
+  .app-wrapper { padding: 12px; }
+  input[type="text"], select, textarea { max-width: 100%; }
 }
