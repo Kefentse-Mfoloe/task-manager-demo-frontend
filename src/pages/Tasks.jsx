@@ -9,6 +9,32 @@ function isGuid(val) {
   return guidRe.test(val);
 }
 
+const TASK_PRIORITIES = {
+  1: 'Low',
+  2: 'Medium',
+  3: 'High',
+}
+
+const TASK_STATUS = {
+  0: 'Backlog',
+  1: 'ToDo',
+  2: 'InProgress',
+  3: 'Blocked',
+  4: 'InReview',
+  5: 'Completed',
+  6: 'Cancelled',
+}
+
+function getPriorityLabel(val) {
+  if (val === null || val === undefined || val === '') return 'None'
+  return TASK_PRIORITIES[val] || String(val)
+}
+
+function getStatusLabel(val) {
+  if (val === null || val === undefined || val === '') return ''
+  return TASK_STATUS[val] || String(val)
+}
+
 export default function Tasks() {
   const tasks = useSelector((s) => s.tasks.list);
   const users = useSelector((s) => s.users.list);
@@ -54,6 +80,12 @@ export default function Tasks() {
       mounted = false
     }
   }, [dispatch])
+
+  const handleFormattedAssignedName = (userId) => {
+    if (!userId) return ''
+    const u = users.find((x) => x.id === userId)
+    return u ? `${u.firstName} ${u.lastName}` : userId
+  }
 
   const validate = () => {
     const validationErrors = {};
@@ -303,9 +335,9 @@ export default function Tasks() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div><strong>{t.title}</strong></div>
-                <div style={{ fontSize: '0.9em', color: '#555' }}>
-                  Priority: {t.taskPriority ?? 'None'} — Assigned: {t.userId}
-                </div>
+                  <div style={{ fontSize: '0.9em', color: '#555' }}>
+                    Priority: {getPriorityLabel(t.taskPriority)} — Assigned: {handleFormattedAssignedName(t.userId)}
+                  </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={() => openView(t)}>View</button>
@@ -322,16 +354,16 @@ export default function Tasks() {
             <h3>Task Details</h3>
             <div><strong>Title:</strong> {viewTask.title}</div>
             <div><strong>Description:</strong> {viewTask.description}</div>
-            <div><strong>Priority:</strong> {viewTask.taskPriority ?? 'None'}</div>
-            <div><strong>Assigned:</strong> {viewTask.userId}</div>
+            <div><strong>Priority:</strong> {getPriorityLabel(viewTask.taskPriority)}</div>
+            <div><strong>Assigned:</strong> {handleFormattedAssignedName(viewTask.userId)}</div>
             <div><strong>Created:</strong> {viewTask.createdDate}</div>
             <div><strong>Modified:</strong> {viewTask.modifiedDate}</div>
             <h4>Task Status History</h4>
             <ul>
               {(viewTask.taskStatusHistory || []).slice().sort((a,b) => new Date(b.createdDate) - new Date(a.createdDate)).map((h, i) => (
                 <li key={i} style={{ marginBottom: 6 }}>
-                  <div><strong>Status:</strong> {h.taskStatusId}</div>
-                  <div><strong>Priority:</strong> {h.taskPriorityId}</div>
+                  <div><strong>Status:</strong> {getStatusLabel(h.taskStatusId)}</div>
+                  <div><strong>Priority:</strong> {getPriorityLabel(h.taskPriorityId)}</div>
                   <div><strong>Comment:</strong> {h.comment}</div>
                   <div style={{ fontSize: '0.85em', color: '#666' }}>{h.createdDate}</div>
                 </li>
