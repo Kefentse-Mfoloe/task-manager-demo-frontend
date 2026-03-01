@@ -118,8 +118,8 @@ export default function Tasks() {
       })
 
       if (!res.ok) {
-        const text = await res.text()
-        setErrors({ submit: `Server error: ${res.status} ${text}` })
+        const processingResult = await res.json();
+        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
         return
       }
 
@@ -159,24 +159,44 @@ export default function Tasks() {
     setEditComment('')
   }
 
-  const handleUpdateSubmit = (ev) => {
+  const handleUpdateSubmit = async (ev) => {
     ev && ev.preventDefault && ev.preventDefault()
     const payload = {
       id: editId,
       taskPriority: editTaskPriority === '' ? null : Number(editTaskPriority),
-      taskStatusId: editTaskStatus === '' ? null : Number(editTaskStatus),
+      taskStatus: editTaskStatus === '' ? null : Number(editTaskStatus),
       comment: editComment || '',
     }
-    dispatch(updateTask(payload))
-    closeUpdate()
+
+    try {
+      const res = await fetch('https://localhost:7026/api/TaskManager/UpdateTask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const processingResult = await res.json();
+        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
+        return;
+      }
+
+      const processingResult = await res.json()
+      if (processingResult.succeeded) {
+        // refresh the tasks list using current filter
+        await handleFilterSubmit()
+        closeUpdate()
+      } else {
+        setErrors({ submit: processingResult.error || 'Update failed' })
+      }
+    } catch (err) {
+      setErrors({ submit: err.message || 'Network error' })
+    }
   }
 
   return (
     <div>
       <h2>Tasks</h2>
-
-      
-
       <form onSubmit={handleSubmit} style={{ marginBottom: 16 }} noValidate>
         <div>
           <label>

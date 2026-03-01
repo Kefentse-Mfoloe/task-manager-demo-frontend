@@ -123,8 +123,8 @@ export default function Users() {
         method: 'POST',
       })
       if (!res.ok) {
-        const text = await res.text()
-        setErrors({ submit: `Server error: ${res.status} ${text}` })
+        const processingResult = await res.json();
+        setErrors({ submit: `Server error: ${processingResult.error || 'Unknown error'}` });
         return
       }
       const processingResult = await res.json()
