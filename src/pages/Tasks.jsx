@@ -14,11 +14,16 @@ export default function Tasks() {
   const users = useSelector((s) => s.users.list);
   const dispatch = useDispatch();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [taskPriority, setTaskPriority] = useState(1);
-  const [userId, setUserId] = useState('00000000-0000-0000-0000-000000000000');
-  const [errors, setErrors] = useState({});
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [taskPriority, setTaskPriority] = useState('')
+  const [userId, setUserId] = useState('00000000-0000-0000-0000-000000000000')
+  const [errors, setErrors] = useState({})
+
+  // filter state
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterPriority, setFilterPriority] = useState('')
+  const [filterUserId, setFilterUserId] = useState('')
 
   useEffect(() => {
     let mounted = true
@@ -92,6 +97,8 @@ export default function Tasks() {
     <div>
       <h2>Tasks</h2>
 
+      
+
       <form onSubmit={handleSubmit} style={{ marginBottom: 16 }} noValidate>
         <div>
           <label>
@@ -139,6 +146,60 @@ export default function Tasks() {
           <button type="submit">Add Task</button>
         </div>
       </form>
+
+      <div style={{ display: 'flex', gap: 24, marginBottom: 16 }}>
+        <section style={{ minWidth: 240 }}>
+          <h3>Filter</h3>
+          <div>
+            <label>
+              Task Status:
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <option value="">-- any --</option>
+                <option value={0}>Backlog</option>
+                <option value={1}>ToDo</option>
+                <option value={2}>InProgress</option>
+                <option value={3}>Blocked</option>
+                <option value={4}>InReview</option>
+                <option value={5}>Completed</option>
+                <option value={6}>Cancelled</option>
+              </select>
+            </label>
+          </div>
+
+          <div>
+            <label>
+              Task Priority:
+              <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
+                <option value="">-- any --</option>
+                <option value={1}>1 - Low</option>
+                <option value={2}>2 - Medium</option>
+                <option value={3}>3 - High</option>
+              </select>
+            </label>
+          </div>
+
+          <div>
+            <label>
+              User:
+              <select value={filterUserId} onChange={(e) => setFilterUserId(e.target.value)}>
+                <option value="">-- any user --</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.firstName} {u.lastName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section style={{ flex: 1 }}>
+          <h3>Tasks</h3>
+          <div style={{ minHeight: 120, border: '1px dashed #ccc', padding: 12 }}>
+            {/* blank section for tasks list */}
+          </div>
+        </section>
+      </div>
 
       <ul>
         {tasks.map((t) => (

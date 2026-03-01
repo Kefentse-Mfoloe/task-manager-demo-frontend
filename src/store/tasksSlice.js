@@ -5,7 +5,21 @@ const tasksSlice = createSlice({
   initialState: { list: [] },
   reducers: {
     addTask(state, action) {
-      state.list.push(action.payload)
+      const payload = action.payload || {}
+      const now = new Date().toISOString()
+      const task = {
+        ...payload,
+        createdDate: payload.createdDate || now,
+        taskStatusHistory: payload.taskStatusHistory || [
+          {
+            taskStatusId: payload.taskStatus || 0,
+            comment: payload.comment || 'Created',
+            taskPriorityId: payload.taskPriority || payload.taskPriorityId || 1,
+            createdDate: now,
+          },
+        ],
+      }
+      state.list.push(task)
     },
     removeTask(state, action) {
       state.list = state.list.filter((t) => t.id !== action.payload)
