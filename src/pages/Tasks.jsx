@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { addTask, removeTask } from '../store/tasksSlice'
+import { addTask, removeTask, setTasks } from '../store/tasksSlice'
 import { setUsers } from '../store/usersSlice'
 
 function isGuid(val) {
@@ -93,6 +93,37 @@ export default function Tasks() {
     }
   }
 
+  const handleFilterSubmit = async () => {
+    const filter = {
+      TaskStatus: filterStatus === '' ? null : Number(filterStatus),
+      TaskPriority: filterPriority === '' ? null : Number(filterPriority),
+      user: filterUserId === '' ? null : filterUserId,
+    }
+
+    try {
+      const res = await fetch('https://localhost:7026/api/TaskManager/GetTasksByFilter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filter),
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        setErrors({ submit: `Server error: ${res.status} ${text}` })
+        return
+      }
+
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        dispatch(setTasks(data))
+      } else {
+        setErrors({ submit: 'Invalid response from server' })
+      }
+    } catch (err) {
+      setErrors({ submit: err.message || 'Network error' })
+    }
+  }
+
   return (
     <div>
       <h2>Tasks</h2>
@@ -147,7 +178,7 @@ export default function Tasks() {
         </div>
       </form>
 
-      <div style={{ display: 'flex', gap: 24, marginBottom: 16 }}>
+      <div style={{ gap: 24, marginBottom: 16 }}>
         <section style={{ minWidth: 240 }}>
           <h3>Filter</h3>
           <div>
@@ -191,14 +222,12 @@ export default function Tasks() {
               </select>
             </label>
           </div>
-        </section>
-
-        <section style={{ flex: 1 }}>
-          <h3>Tasks</h3>
-          <div style={{ minHeight: 120, border: '1px dashed #ccc', padding: 12 }}>
-            {/* blank section for tasks list */}
+          <div style={{ marginTop: 8 }}>
+            <button type="button" onClick={handleFilterSubmit}>Submit</button>
           </div>
         </section>
+
+        
       </div>
 
       <ul>
